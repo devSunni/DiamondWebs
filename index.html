@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>다이아몬드 게임 · DiamondWebs</title>
+  <meta name="description" content="별 모양 보드에서 빨강·노랑·파랑 말을 반대편으로 옮기는 오프라인 설치형 보드게임 PWA" />
+  <meta name="theme-color" content="#2b1d14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="다이아몬드" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="icon" type="image/png" href="./icon-192.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #1a120d;
+      --bg-panel: rgba(43, 29, 20, 0.86);
+      --border-gold: rgba(245, 196, 105, 0.25);
+    }
+
+    html, body {
+      font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 25%, #3a2619 0%, #1c130e 72%, #120c09 100%);
+      color: #fef3c7;
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      overscroll-behavior-y: contain;
+      touch-action: manipulation;
+    }
+
+    img, svg, button {
+      -webkit-touch-callout: none;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+
+    input, textarea, select {
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
+    }
+
+    .board-shell {
+      width: min(100%, 540px);
+      aspect-ratio: 1 / 1;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 768px) and (orientation: landscape) {
+      .board-shell {
+        width: min(100%, 660px, calc(100dvh - 36px));
+      }
+      body {
+        overflow-x: hidden;
+      }
+    }
+
+    .glass-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-gold);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(8px);
+    }
+
+    .hole-hit {
+      cursor: pointer;
+    }
+
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(0.92); opacity: 0.75; }
+      50% { transform: scale(1.12); opacity: 1; }
+    }
+
+    .pulse-ring {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: pulseRing 1.3s ease-in-out infinite;
+    }
+
+    .piece-group {
+      transition: transform 0.14s ease-out;
+      cursor: pointer;
+    }
+
+    .piece-group:hover {
+      filter: brightness(1.08);
+    }
+
+    .btn-warm {
+      background: linear-gradient(180deg, #523826 0%, #3a2619 100%);
+      border: 1px solid rgba(245, 196, 105, 0.3);
+      transition: transform 0.1s ease, filter 0.15s ease;
+    }
+    .btn-warm:active {
+      transform: scale(0.96);
+    }
+    .btn-warm:hover {
+      filter: brightness(1.14);
+    }
+
+    .btn-gold {
+      background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+      color: #1c130e;
+      font-weight: 800;
+      transition: transform 0.1s ease, filter 0.15s ease;
+    }
+    .btn-gold:active {
+      transform: scale(0.96);
+    }
+    .btn-gold:hover {
+      filter: brightness(1.08);
+    }
+  </style>
+</head>
+<body class="min-h-[100dvh] flex flex-col justify-center">
+  <div class="w-full max-w-5xl lg:max-w-6xl mx-auto px-2.5 py-2 md:py-3">
+    <main class="grid grid-cols-1 md:grid-cols-12 gap-2.5 md:gap-4 items-center">
+
+      <!-- Left Column: Header, Players & Controls -->
+      <section class="md:col-span-5 lg:col-span-4 flex flex-col gap-2.5 order-2 md:order-1">
+        <!-- Brand Header -->
+        <header class="glass-card rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <img src="./icon-192.png" alt="다이아몬드 게임 아이콘" class="w-9 h-9 rounded-xl shadow-md shrink-0" />
+            <div class="min-w-0">
+              <h1 class="text-base md:text-lg font-black tracking-tight text-amber-200 leading-tight truncate">
+                다이아몬드 게임
+              </h1>
+              <p id="modeSubtitle" class="text-[11px] text-amber-200/70 truncate">
+                3인전 · 10말 표준 · 중급 AI
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button id="btnInstall" type="button" class="hidden px-2.5 py-1.5 rounded-xl btn-gold text-xs shadow" title="앱 설치">
+              📲 설치
+            </button>
+            <button id="btnSfx" type="button" class="btn-warm w-9 h-9 rounded-xl flex items-center justify-center text-base" title="효과음 켜기/끄기" aria-label="효과음 토글">
+              🔔
+            </button>
+            <button id="btnTts" type="button" class="btn-warm w-9 h-9 rounded-xl flex items-center justify-center text-base" title="한국어 음성 안내 켜기/끄기" aria-label="음성 안내 토글">
+              🔊
+            </button>
+          </div>
+        </header>
+
+        <!-- Turn Banner -->
+        <div id="turnBanner" class="glass-card rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span id="turnDot" class="w-4 h-4 rounded-full shadow-inner shrink-0 ring-2 ring-amber-200/70 bg-rose-500"></span>
+            <div class="min-w-0">
+              <div id="turnTitle" class="text-sm md:text-base font-extrabold text-amber-50 truncate">빨강 차례</div>
+              <div id="turnHint" class="text-[11px] text-amber-200/75 truncate">옮길 말을 선택하세요</div>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <span id="turnBadge" class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">
+              1턴
+            </span>
+          </div>
+        </div>
+
+        <!-- Players Scoreboard -->
+        <div id="playerCards" class="grid grid-cols-3 md:grid-cols-1 gap-2"></div>
+
+        <!-- Action Buttons -->
+        <div class="glass-card rounded-2xl p-2.5 grid grid-cols-4 md:grid-cols-2 gap-2">
+          <button id="btnNewGame" type="button" class="btn-gold rounded-xl py-2.5 px-2 text-xs md:text-sm flex items-center justify-center gap-1 shadow">
+            <span>🎮</span><span>새 게임</span>
+          </button>
+          <button id="btnUndo" type="button" class="btn-warm rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold text-amber-100 flex items-center justify-center gap-1">
+            <span>↩️</span><span>무르기</span>
+          </button>
+          <button id="btnHint" type="button" class="btn-warm rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold text-amber-100 flex items-center justify-center gap-1">
+            <span>💡</span><span>힌트</span>
+          </button>
+          <button id="btnRules" type="button" class="btn-warm rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold text-amber-100 flex items-center justify-center gap-1">
+            <span>📖</span><span>규칙</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Column: 6-Pointed Star Board -->
+      <section class="md:col-span-7 lg:col-span-8 flex items-center justify-center order-1 md:order-2">
+        <div class="board-shell relative flex items-center justify-center">
+          <svg id="boardSvg" viewBox="-10 -10 20 20" class="w-full h-full drop-shadow-[0_18px_36px_rgba(0,0,0,0.65)]" role="img" aria-label="다이아몬드 별 모양 보드판">
+            <defs>
+              <radialGradient id="woodFrame" cx="45%" cy="35%" r="68%">
+                <stop offset="0%" stop-color="#6b4428" />
+                <stop offset="65%" stop-color="#452a17" />
+                <stop offset="100%" stop-color="#2c1a0e" />
+              </radialGradient>
+              <linearGradient id="woodBoard" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f5deb3" />
+                <stop offset="50%" stop-color="#e8c68e" />
+                <stop offset="100%" stop-color="#d5ab6c" />
+              </linearGradient>
+              <radialGradient id="holeGrad" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#8b6239" />
+                <stop offset="70%" stop-color="#634222" />
+                <stop offset="100%" stop-color="#4a2f16" />
+              </radialGradient>
+              <radialGradient id="marble-red" cx="35%" cy="30%" r="65%">
+                <stop offset="0%" stop-color="#ffe4e6" />
+                <stop offset="22%" stop-color="#fb7185" />
+                <stop offset="68%" stop-color="#e11d48" />
+                <stop offset="100%" stop-color="#881337" />
+              </radialGradient>
+              <radialGradient id="marble-yellow" cx="35%" cy="30%" r="65%">
+                <stop offset="0%" stop-color="#fefce8" />
+                <stop offset="24%" stop-color="#fde047" />
+                <stop offset="68%" stop-color="#eab308" />
+                <stop offset="100%" stop-color="#854d0e" />
+              </radialGradient>
+              <radialGradient id="marble-blue" cx="35%" cy="30%" r="65%">
+                <stop offset="0%" stop-color="#eff6ff" />
+                <stop offset="22%" stop-color="#60a5fa" />
+                <stop offset="68%" stop-color="#2563eb" />
+                <stop offset="100%" stop-color="#1e3a8a" />
+              </radialGradient>
+              <filter id="pieceShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="0.12" stdDeviation="0.1" flood-color="#1a0e07" flood-opacity="0.65" />
+              </filter>
+            </defs>
+            <g id="layerBase"></g>
+            <g id="layerLines"></g>
+            <g id="layerZones"></g>
+            <g id="layerHoles"></g>
+            <g id="layerPath"></g>
+            <g id="layerPieces"></g>
+            <g id="layerMoves"></g>
+          </svg>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-amber-950/95 border border-amber-400/50 text-amber-100 text-xs md:text-sm font-bold shadow-2xl opacity-0 pointer-events-none transition-opacity duration-200 whitespace-nowrap"></div>
+
+  <!-- New Game Setup Modal -->
+  <div id="setupModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="glass-card rounded-3xl w-full max-w-md p-5 text-amber-50 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-black text-amber-200">🎮 새 게임 설정</h2>
+        <button id="btnCloseSetup" type="button" class="btn-warm w-8 h-8 rounded-full text-sm font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-sm">
+        <div>
+          <label class="block text-xs font-bold text-amber-200/80 mb-1.5">플레이어 모드</label>
+          <div class="grid grid-cols-2 gap-2" id="optMode">
+            <button type="button" data-mode="3p-1h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🟡🔵 3인전<br><span class="text-[11px] font-normal text-amber-200/70">나 vs AI 2명</span>
+            </button>
+            <button type="button" data-mode="3p-3h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🟡🔵 3인 대결<br><span class="text-[11px] font-normal text-amber-200/70">친구와 번갈아 플레이</span>
+            </button>
+            <button type="button" data-mode="2p-1h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🔵 2인전<br><span class="text-[11px] font-normal text-amber-200/70">나 vs AI 1명</span>
+            </button>
+            <button type="button" data-mode="2p-2h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🔵 2인 대결<br><span class="text-[11px] font-normal text-amber-200/70">마주 보고 1:1 대결</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-amber-200/80 mb-1.5">말 개수</label>
+            <div class="grid grid-cols-2 gap-1.5" id="optPieces">
+              <button type="button" data-pieces="10" class="piece-opt btn-warm rounded-xl py-2 text-xs font-bold">10말 표준</button>
+              <button type="button" data-pieces="15" class="piece-opt btn-warm rounded-xl py-2 text-xs font-bold">15말 전통</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-amber-200/80 mb-1.5">AI 난이도</label>
+            <div class="grid grid-cols-3 gap-1" id="optDiff">
+              <button type="button" data-diff="easy" class="diff-opt btn-warm rounded-xl py-2 text-xs font-bold">초급</button>
+              <button type="button" data-diff="medium" class="diff-opt btn-warm rounded-xl py-2 text-xs font-bold">중급</button>
+              <button type="button" data-diff="hard" class="diff-opt btn-warm rounded-xl py-2 text-xs font-bold">고급</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="btnStartConfigured" type="button" class="w-full btn-gold rounded-2xl py-3 text-sm font-black shadow-lg">
+        게임 시작하기 ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div id="rulesModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="glass-card rounded-3xl w-full max-w-md p-5 text-amber-50 space-y-3.5 max-h-[90dvh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-black text-amber-200">📖 다이아몬드 게임 규칙</h2>
+        <div class="flex items-center gap-1.5">
+          <button id="btnSpeakRules" type="button" class="btn-warm px-2.5 py-1.5 rounded-xl text-xs font-bold text-amber-200">
+            🔊 규칙 듣기
+          </button>
+          <button id="btnCloseRules" type="button" class="btn-warm w-8 h-8 rounded-full text-sm font-bold">✕</button>
+        </div>
+      </div>
+      <ul class="space-y-2 text-xs md:text-sm text-amber-100/90 leading-relaxed">
+        <li><strong class="text-amber-300">🎯 목표:</strong> 별 모양 판에서 내 색깔 말(왕말 👑 포함)을 모두 <strong>정반대편 진영</strong>으로 가장 먼저 옮기면 승리합니다!</li>
+        <li><strong class="text-amber-300">👣 한 칸 이동:</strong> 차례마다 말 하나를 인접한 빈 칸으로 한 칸 옮길 수 있어요.</li>
+        <li><strong class="text-amber-300">🦘 연속 점프:</strong> 바로 옆에 다른 말(내 말·상대 말 모두 가능)이 있고 그 너머가 비어 있으면 뛰어넘을 수 있어요. 착지한 곳에서 또 뛰어넘을 수 있다면 <strong>한 턴에 여러 번 연속 점프</strong>가 가능합니다!</li>
+        <li><strong class="text-amber-300">✨ 잡기 없음:</strong> 뛰어넘은 말은 사라지지 않고 그대로 징검다리로 남아요.</li>
+        <li><strong class="text-amber-300">💡 팁:</strong> 말을 선택하면 갈 수 있는 칸과 <strong>2단·3단 연속 점프</strong> 위치가 금색으로 반짝여요!</li>
+      </ul>
+      <button id="btnOkRules" type="button" class="w-full btn-gold rounded-2xl py-2.5 text-sm font-black">
+        확인했어요!
+      </button>
+    </div>
+  </div>
+
+  <!-- Victory Modal -->
+  <div id="winModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-card rounded-3xl w-full max-w-sm p-6 text-center space-y-4">
+      <div class="text-5xl">🏆</div>
+      <div>
+        <h2 id="winTitle" class="text-2xl font-black text-amber-200">빨강 승리!</h2>
+        <p id="winDesc" class="text-sm text-amber-100/80 mt-1">모든 말을 반대편 진영에 안착시켰어요!</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5 pt-1">
+        <button id="btnWinReplay" type="button" class="btn-gold rounded-2xl py-2.5 text-sm font-black">다시 하기</button>
+        <button id="btnWinClose" type="button" class="btn-warm rounded-2xl py-2.5 text-sm font-bold text-amber-100">보드 보기</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./engine.js"></script>
+  <script src="./sound.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      const SVG_NS = 'http://www.w3.org/2000/svg';
+      const Engine = window.DiamondEngine;
+      const Sound = window.DiamondSound;
+
+      // Touch & Long-press native app guards
+      document.addEventListener('contextmenu', (e) => {
+        if (!e.target || !e.target.closest('input, textarea')) e.preventDefault();
+      });
+      document.addEventListener('dragstart', (e) => {
+        if (!e.target || !e.target.closest('input, textarea')) e.preventDefault();
+      });
+
+      const appConfig = {
+        mode: '3p-1h',
+        pieceCount: 10,
+        aiDifficulty: 'medium'
+      };
+
+      let state = null;
+      let selectedKey = null;
+      let validMoves = new Map();
+      let hintMove = null;
+      let previewPath = null;
+      let isAnimating = false;
+      let aiTimer = null;
+      let deferredInstallPrompt = null;
+
+      const els = {
+        boardSvg: document.getElementById('boardSvg'),
+        layerBase: document.getElementById('layerBase'),
+        layerLines: document.getElementById('layerLines'),
+        layerZones: document.getElementById('layerZones'),
+        layerHoles: document.getElementById('layerHoles'),
+        layerPath: document.getElementById('layerPath'),
+        layerPieces: document.getElementById('layerPieces'),
+        layerMoves: document.getElementById('layerMoves'),
+        playerCards: document.getElementById('playerCards'),
+        modeSubtitle: document.getElementById('modeSubtitle'),
+        turnDot: document.getElementById('turnDot'),
+        turnTitle: document.getElementById('turnTitle'),
+        turnHint: document.getElementById('turnHint'),
+        turnBadge: document.getElementById('turnBadge'),
+        toast: document.getElementById('toast'),
+        btnInstall: document.getElementById('btnInstall'),
+        btnSfx: document.getElementById('btnSfx'),
+        btnTts: document.getElementById('btnTts'),
+        btnNewGame: document.getElementById('btnNewGame'),
+        btnUndo: document.getElementById('btnUndo'),
+        btnHint: document.getElementById('btnHint'),
+        btnRules: document.getElementById('btnRules'),
+        setupModal: document.getElementById('setupModal'),
+        btnCloseSetup: document.getElementById('btnCloseSetup'),
+        btnStartConfigured: document.getElementById('btnStartConfigured'),
+        rulesModal: document.getElementById('rulesModal'),
+        btnSpeakRules: document.getElementById('btnSpeakRules'),
+        btnCloseRules: document.getElementById('btnCloseRules'),
+        btnOkRules: document.getElementById('btnOkRules'),
+        winModal: document.getElementById('winModal'),
+        winTitle: document.getElementById('winTitle'),
+        winDesc: document.getElementById('winDesc'),
+        btnWinReplay: document.getElementById('btnWinReplay'),
+        btnWinClose: document.getElementById('btnWinClose')
+      };
+
+      let toastTimer = null;
+      function showToast(msg) {
+        els.toast.textContent = msg;
+        els.toast.classList.remove('opacity-0');
+        els.toast.classList.add('opacity-100');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          els.toast.classList.remove('opacity-100');
+          els.toast.classList.add('opacity-0');
+        }, 2200);
+      }
+
+      function svgEl(tag, attrs = {}) {
+        const node = document.createElementNS(SVG_NS, tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          node.setAttribute(k, String(v));
+        }
+        return node;
+      }
+
+      function buildStaticBoard() {
+        els.layerBase.innerHTML = '';
+        els.layerLines.innerHTML = '';
+        els.layerHoles.innerHTML = '';
+
+        // Outer circular/hex wooden plaque
+        els.layerBase.appendChild(svgEl('circle', {
+          cx: 0, cy: 0, r: 9.45,
+          fill: 'url(#woodFrame)',
+          stroke: '#8a5a32',
+          'stroke-width': 0.22
+        }));
+        els.layerBase.appendChild(svgEl('circle', {
+          cx: 0, cy: 0, r: 9.0,
+          fill: 'none',
+          stroke: 'rgba(251, 191, 36, 0.24)',
+          'stroke-width': 0.08
+        }));
+
+        // 6-pointed star polygon (two equilateral triangles)
+        const R = 8.45;
+        const triPoints = (angles) =>
+          angles.map((deg) => {
+            const rad = (deg * Math.PI) / 180;
+            return `${(R * Math.cos(rad)).toFixed(3)},${(R * Math.sin(rad)).toFixed(3)}`;
+          }).join(' ');
+
+        const tri1 = triPoints([-90, 30, 150]);
+        const tri2 = triPoints([90, 210, 330]);
+
+        els.layerBase.appendChild(svgEl('polygon', {
+          points: tri1,
+          fill: 'url(#woodBoard)',
+          stroke: '#784c24',
+          'stroke-width': 0.16,
+          'stroke-linejoin': 'round'
+        }));
+        els.layerBase.appendChild(svgEl('polygon', {
+          points: tri2,
+          fill: 'url(#woodBoard)',
+          stroke: '#784c24',
+          'stroke-width': 0.16,
+          'stroke-linejoin': 'round'
+        }));
+
+        // Etched lattice lines connecting adjacent holes
+        const drawnEdges = new Set();
+        for (const cell of Engine.GEOMETRY.cells) {
+          for (const nb of cell.neighbors) {
+            if (!nb.step) continue;
+            const a = cell.key < nb.step.key ? cell.key : nb.step.key;
+            const b = cell.key < nb.step.key ? nb.step.key : cell.key;
+            const edgeId = `${a}|${b}`;
+            if (drawnEdges.has(edgeId)) continue;
+            drawnEdges.add(edgeId);
+            els.layerLines.appendChild(svgEl('line', {
+              x1: cell.x, y1: cell.y,
+              x2: nb.step.x, y2: nb.step.y,
+              stroke: 'rgba(110, 68, 30, 0.34)',
+              'stroke-width': 0.075
+            }));
+          }
+        }
+
+        // Recessed holes
+        for (const cell of Engine.GEOMETRY.cells) {
+          const g = svgEl('g', { class: 'hole-hit', 'data-key': cell.key });
+          g.appendChild(svgEl('circle', {
+            cx: cell.x, cy: cell.y, r: 0.34,
+            fill: 'url(#holeGrad)',
+            stroke: 'rgba(255, 244, 214, 0.45)',
+            'stroke-width': 0.05
+          }));
+          // Larger invisible touch target
+          g.appendChild(svgEl('circle', {
+            cx: cell.x, cy: cell.y, r: 0.48,
+            fill: 'transparent'
+          }));
+          g.addEventListener('click', () => onCellClick(cell.key));
+          g.addEventListener('mouseenter', () => onCellHover(cell.key));
+          g.addEventListener('mouseleave', () => onCellHover(null));
+          els.layerHoles.appendChild(g);
+        }
+      }
+
+      function renderZones() {
+        els.layerZones.innerHTML = '';
+        if (!state) return;
+        for (const p of state.players) {
+          // Subtle tinted rings on start & target zones
+          for (const k of p.startZone) {
+            const cell = Engine.GEOMETRY.cellMap.get(k);
+            els.layerZones.appendChild(svgEl('circle', {
+              cx: cell.x, cy: cell.y, r: 0.43,
+              fill: p.zoneTint,
+              stroke: p.hex,
+              'stroke-opacity': 0.32,
+              'stroke-width': 0.045
+            }));
+          }
+          for (const k of p.targetZone) {
+            const cell = Engine.GEOMETRY.cellMap.get(k);
+            els.layerZones.appendChild(svgEl('circle', {
+              cx: cell.x, cy: cell.y, r: 0.43,
+              fill: 'none',
+              stroke: p.hex,
+              'stroke-dasharray': '0.14 0.1',
+              'stroke-opacity': 0.55,
+              'stroke-width': 0.06
+            }));
+          }
+        }
+      }
+
+      function renderPath(pathKeys, isHint = false) {
+        els.layerPath.innerHTML = '';
+        if (!pathKeys || pathKeys.length < 2) return;
+        const pts = pathKeys.map((k) => {
+          const c = Engine.GEOMETRY.cellMap.get(k);
+          return `${c.x},${c.y}`;
+        }).join(' ');
+
+        els.layerPath.appendChild(svgEl('polyline', {
+          points: pts,
+          fill: 'none',
+          stroke: isHint ? '#38bdf8' : '#fbbf24',
+          'stroke-width': 0.16,
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          'stroke-dasharray': '0.25 0.2',
+          opacity: 0.9
+        }));
+
+        for (let i = 1; i < pathKeys.length - 1; i++) {
+          const c = Engine.GEOMETRY.cellMap.get(pathKeys[i]);
+          els.layerPath.appendChild(svgEl('circle', {
+            cx: c.x, cy: c.y, r: 0.16,
+            fill: isHint ? '#38bdf8' : '#fde047',
+            opacity: 0.95
+          }));
+        }
+      }
+
+      function renderPieces(overridePos = null) {
+        els.layerPieces.innerHTML = '';
+        if (!state) return;
+
+        const currentPlayer = state.players[state.turnIndex];
+
+        for (const cell of Engine.GEOMETRY.cells) {
+          const piece = state.board[cell.key];
+          if (!piece) continue;
+
+          const drawX = overridePos && overridePos.key === cell.key ? overridePos.x : cell.x;
+          const drawY = overridePos && overridePos.key === cell.key ? overridePos.y : cell.y;
+
+          const isSelected = cell.key === selectedKey;
+          const isLastDest = state.lastMove && state.lastMove.to === cell.key;
+          const isHintFrom = hintMove && hintMove.from === cell.key;
+          const isOwnTurn = !state.winner && piece.owner === currentPlayer.id && currentPlayer.controller === 'human';
+
+          const g = svgEl('g', {
+            class: 'piece-group',
+            'data-piece-key': cell.key,
+            filter: 'url(#pieceShadow)'
+          });
+
+          if (isSelected) {
+            g.appendChild(svgEl('circle', {
+              cx: drawX, cy: drawY, r: 0.5,
+              fill: 'none',
+              stroke: '#fef08a',
+              'stroke-width': 0.1,
+              class: 'pulse-ring'
+            }));
+          } else if (isHintFrom) {
+            g.appendChild(svgEl('circle', {
+              cx: drawX, cy: drawY, r: 0.5,
+              fill: 'none',
+              stroke: '#38bdf8',
+              'stroke-width': 0.1,
+              class: 'pulse-ring'
+            }));
+          } else if (isLastDest) {
+            g.appendChild(svgEl('circle', {
+              cx: drawX, cy: drawY, r: 0.46,
+              fill: 'none',
+              stroke: '#ffffff',
+              'stroke-opacity': 0.72,
+              'stroke-width': 0.065
+            }));
+          }
+
+          g.appendChild(svgEl('circle', {
+            cx: drawX, cy: drawY,
+            r: isSelected ? 0.43 : (piece.isKing ? 0.41 : 0.37),
+            fill: `url(#marble-${piece.owner})`,
+            stroke: piece.isKing ? '#fef08a' : 'rgba(255,255,255,0.45)',
+            'stroke-width': piece.isKing ? 0.075 : 0.04
+          }));
+
+          // Specular highlight dot
+          g.appendChild(svgEl('ellipse', {
+            cx: drawX - 0.12, cy: drawY - 0.13,
+            rx: 0.11, ry: 0.07,
+            fill: 'rgba(255,255,255,0.68)',
+            transform: `rotate(-25 ${drawX - 0.12} ${drawY - 0.13})`
+          }));
+
+          // King crown mark on 왕말
+          if (piece.isKing) {
+            const crown = svgEl('text', {
+              x: drawX,
+              y: drawY + 0.14,
+              'text-anchor': 'middle',
+              'font-size': 0.36,
+              'pointer-events': 'none'
+            });
+            crown.textContent = '👑';
+            g.appendChild(crown);
+          }
+
+          if (isOwnTurn) {
+            g.addEventListener('click', (e) => {
+              e.stopPropagation();
+              onCellClick(cell.key);
+            });
+          } else {
+            g.addEventListener('click', (e) => {
+              e.stopPropagation();
+              onCellClick(cell.key);
+            });
+          }
+
+          els.layerPieces.appendChild(g);
+        }
+      }
+
+      function renderValidMoves() {
+        els.layerMoves.innerHTML = '';
+        if (!selectedKey && !hintMove) return;
+
+        if (hintMove && !selectedKey) {
+          const dest = Engine.GEOMETRY.cellMap.get(hintMove.to);
+          const g = svgEl('g', { class: 'hole-hit' });
+          g.appendChild(svgEl('circle', {
+            cx: dest.x, cy: dest.y, r: 0.36,
+            fill: 'rgba(56, 189, 248, 0.38)',
+            stroke: '#38bdf8',
+            'stroke-width': 0.09,
+            class: 'pulse-ring'
+          }));
+          g.addEventListener('click', () => executeMoveWithAnimation(hintMove));
+          els.layerMoves.appendChild(g);
+          renderPath(hintMove.path, true);
+          return;
+        }
+
+        for (const mv of validMoves.values()) {
+          const dest = Engine.GEOMETRY.cellMap.get(mv.to);
+          const isJump = mv.type === 'jump';
+          const g = svgEl('g', { class: 'hole-hit', 'data-dest-key': mv.to });
+
+          g.appendChild(svgEl('circle', {
+            cx: dest.x, cy: dest.y,
+            r: isJump ? 0.35 : 0.25,
+            fill: isJump ? 'rgba(251, 191, 36, 0.42)' : 'rgba(52, 211, 153, 0.42)',
+            stroke: isJump ? '#fde047' : '#6ee7b7',
+            'stroke-width': isJump ? 0.085 : 0.065,
+            class: 'pulse-ring'
+          }));
+
+          if (mv.hops >= 2) {
+            const badge = svgEl('text', {
+              x: dest.x,
+              y: dest.y + 0.12,
+              'text-anchor': 'middle',
+              'font-size': 0.32,
+              'font-weight': 900,
+              fill: '#1c130e',
+              stroke: '#fef08a',
+              'stroke-width': 0.04,
+              'paint-order': 'stroke',
+              'pointer-events': 'none'
+            });
+            badge.textContent = `${mv.hops}`;
+            g.appendChild(badge);
+          }
+
+          g.appendChild(svgEl('circle', {
+            cx: dest.x, cy: dest.y, r: 0.48,
+            fill: 'transparent'
+          }));
+
+          g.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onCellClick(mv.to);
+          });
+          g.addEventListener('mouseenter', () => onCellHover(mv.to));
+          g.addEventListener('mouseleave', () => onCellHover(null));
+          els.layerMoves.appendChild(g);
+        }
+      }
+
+      function renderUI() {
+        if (!state) return;
+        const current = state.players[state.turnIndex];
+
+        const modeText = state.playerCount === 3 ? '3인전' : '2인전';
+        const diffLabel = { easy: '초급', medium: '중급', hard: '고급' }[state.aiDifficulty] || '중급';
+        const hasAi = state.players.some((p) => p.controller === 'ai');
+        els.modeSubtitle.textContent = `${modeText} · ${state.pieceCount}말 · ${hasAi ? `${diffLabel} AI` : '패스 앤 플레이'}`;
+
+        els.turnDot.style.backgroundColor = current.hex;
+        if (state.winner) {
+          const w = state.players.find((p) => p.id === state.winner);
+          els.turnTitle.textContent = `🏆 ${w.label} 승리!`;
+          els.turnHint.textContent = '새 게임을 눌러 다시 도전해보세요';
+        } else if (current.controller === 'ai') {
+          els.turnTitle.textContent = `${current.label} AI 생각 중...`;
+          els.turnHint.textContent = '최적의 점프 경로를 찾고 있어요';
+        } else {
+          els.turnTitle.textContent = `${current.label} 차례`;
+          els.turnHint.textContent = selectedKey
+            ? `이동 가능한 칸 ${validMoves.size}곳 (금색은 점프!)`
+            : '내 색깔 말을 눌러 이동하세요';
+        }
+        els.turnBadge.textContent = `${state.turnNumber}턴`;
+
+        // Render player status cards
+        els.playerCards.innerHTML = '';
+        for (const p of state.players) {
+          const arrived = Engine.countPiecesInTarget(state, p);
+          const pct = Math.round((arrived / state.pieceCount) * 100);
+          const isActive = !state.winner && p.index === state.turnIndex;
+
+          const card = document.createElement('div');
+          card.className = `glass-card rounded-2xl px-2.5 py-2 transition-all ${
+            isActive ? 'ring-2 ring-amber-300 bg-amber-900/45' : 'opacity-80'
+          }`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-3 h-3 rounded-full shrink-0" style="background:${p.hex}; box-shadow: 0 0 8px ${p.hex}"></span>
+                <span class="text-xs md:text-sm font-extrabold text-amber-50 truncate">${p.label}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-black/30 text-amber-200/80 shrink-0">${p.controller === 'ai' ? 'AI' : '나'}</span>
+              </div>
+              <span class="text-xs font-black text-amber-200 shrink-0">${arrived}/${state.pieceCount}</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-black/40 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-300" style="width:${pct}%; background:${p.hex}"></div>
+            </div>
+          `;
+          els.playerCards.appendChild(card);
+        }
+
+        els.btnUndo.disabled = state.history.length === 0 || isAnimating;
+        els.btnUndo.classList.toggle('opacity-45', els.btnUndo.disabled);
+        els.btnHint.disabled = Boolean(state.winner) || current.controller !== 'human' || isAnimating;
+        els.btnHint.classList.toggle('opacity-45', els.btnHint.disabled);
+
+        els.btnSfx.textContent = Sound.settings.sfxEnabled ? '🔔' : '🔕';
+        els.btnTts.textContent = Sound.settings.ttsEnabled ? '🔊' : '🔇';
+      }
+
+      function renderAll() {
+        renderZones();
+        renderPieces();
+        renderValidMoves();
+        if (previewPath) {
+          renderPath(previewPath, false);
+        } else if (state.lastMove && !selectedKey && !hintMove) {
+          renderPath(state.lastMove.path, false);
+        } else if (!hintMove) {
+          els.layerPath.innerHTML = '';
+        }
+        renderUI();
+      }
+
+      function onCellHover(key) {
+        if (!selectedKey || isAnimating) return;
+        if (key && validMoves.has(key)) {
+          previewPath = validMoves.get(key).path;
+          renderPath(previewPath, false);
+        } else {
+          previewPath = null;
+          els.layerPath.innerHTML = '';
+        }
+      }
+
+      function onCellClick(key) {
+        if (!state || state.winner || isAnimating) return;
+        const current = state.players[state.turnIndex];
+        if (current.controller !== 'human') return;
+
+        // If clicking a valid destination for the currently selected piece
+        if (selectedKey && validMoves.has(key)) {
+          const mv = validMoves.get(key);
+          executeMoveWithAnimation(mv);
+          return;
+        }
+
+        const piece = state.board[key];
+        if (piece && piece.owner === current.id) {
+          if (selectedKey === key) {
+            selectedKey = null;
+            validMoves = new Map();
+            previewPath = null;
+            renderAll();
+            return;
+          }
+          selectedKey = key;
+          hintMove = null;
+          previewPath = null;
+          validMoves = Engine.getValidMoves(state.board, key);
+          Sound.playSelect();
+          if (validMoves.size === 0) {
+            showToast('이 말은 지금 움직일 수 없어요!');
+          }
+          renderAll();
+          return;
+        }
+
+        // Clicking empty or opponent cell clears selection
+        if (selectedKey) {
+          selectedKey = null;
+          validMoves = new Map();
+          previewPath = null;
+          renderAll();
+        }
+      }
+
+      async function executeMoveWithAnimation(mv) {
+        if (isAnimating || !state) return;
+        isAnimating = true;
+        selectedKey = null;
+        validMoves = new Map();
+        hintMove = null;
+        previewPath = null;
+
+        renderPath(mv.path, false);
+        renderValidMoves();
+
+        const path = mv.path;
+        for (let i = 0; i < path.length - 1; i++) {
+          const fromCell = Engine.GEOMETRY.cellMap.get(path[i]);
+          const toCell = Engine.GEOMETRY.cellMap.get(path[i + 1]);
+          const duration = mv.type === 'jump' ? 165 : 140;
+
+          if (mv.type === 'jump') Sound.playHop(i);
+          else Sound.playStep();
+
+          await animateHop(mv.from, fromCell, toCell, duration, mv.type === 'jump');
+        }
+
+        const mover = state.players[state.turnIndex];
+        Engine.applyMove(state, mv);
+        isAnimating = false;
+        renderAll();
+
+        if (mv.hops >= 2) {
+          showToast(`✨ ${mover.label} ${mv.hops}단 연속 점프!`);
+          if (mover.controller === 'human') {
+            Sound.speakKorean(`${mv.hops}단 연속 점프!`);
+          }
+        }
+
+        if (state.winner) {
+          const winnerObj = state.players.find((p) => p.id === state.winner);
+          Sound.playWin();
+          Sound.speakKorean(`축하합니다! ${winnerObj.label} 승리!`);
+          els.winTitle.textContent = `${winnerObj.emoji} ${winnerObj.label} 승리!`;
+          els.winDesc.textContent = `${state.turnNumber}턴 만에 ${state.pieceCount}개의 말을 모두 반대편으로 옮겼어요!`;
+          els.winModal.classList.remove('hidden');
+          els.winModal.classList.add('flex');
+          return;
+        }
+
+        scheduleAIIfNeeded();
+      }
+
+      function animateHop(pieceKey, fromCell, toCell, duration, isArc) {
+        return new Promise((resolve) => {
+          const start = performance.now();
+          function frame(now) {
+            const t = Math.min(1, (now - start) / duration);
+            const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            const x = fromCell.x + (toCell.x - fromCell.x) * ease;
+            const arc = isArc ? Math.sin(t * Math.PI) * 0.45 : 0;
+            const y = fromCell.y + (toCell.y - fromCell.y) * ease - arc;
+            renderPieces({ key: pieceKey, x, y });
+            if (t < 1) requestAnimationFrame(frame);
+            else resolve();
+          }
+          requestAnimationFrame(frame);
+        });
+      }
+
+      function scheduleAIIfNeeded() {
+        clearTimeout(aiTimer);
+        if (!state || state.winner) return;
+        const current = state.players[state.turnIndex];
+        if (current.controller !== 'ai') return;
+
+        aiTimer = setTimeout(() => {
+          if (!state || state.winner || isAnimating) return;
+          const mv = Engine.chooseAIMove(state);
+          if (mv) {
+            executeMoveWithAnimation(mv);
+          }
+        }, 420);
+      }
+
+      function startNewGame() {
+        clearTimeout(aiTimer);
+        isAnimating = false;
+        selectedKey = null;
+        validMoves = new Map();
+        hintMove = null;
+        previewPath = null;
+
+        let playerCount = 3;
+        let controllers = ['human', 'ai', 'ai'];
+        if (appConfig.mode === '3p-3h') {
+          playerCount = 3;
+          controllers = ['human', 'human', 'human'];
+        } else if (appConfig.mode === '2p-1h') {
+          playerCount = 2;
+          controllers = ['human', 'ai'];
+        } else if (appConfig.mode === '2p-2h') {
+          playerCount = 2;
+          controllers = ['human', 'human'];
+        }
+
+        state = Engine.createGame({
+          playerCount,
+          pieceCount: appConfig.pieceCount,
+          aiDifficulty: appConfig.aiDifficulty,
+          controllers
+        });
+
+        els.winModal.classList.add('hidden');
+        els.winModal.classList.remove('flex');
+        renderAll();
+        scheduleAIIfNeeded();
+      }
+
+      function handleUndo() {
+        if (!state || !state.history.length || isAnimating) return;
+        clearTimeout(aiTimer);
+        selectedKey = null;
+        validMoves = new Map();
+        hintMove = null;
+        previewPath = null;
+
+        const hasHuman = state.players.some((p) => p.controller === 'human');
+        Engine.undoMove(state);
+        while (
+          hasHuman &&
+          state.history.length > 0 &&
+          state.players[state.turnIndex].controller === 'ai'
+        ) {
+          Engine.undoMove(state);
+        }
+        Sound.playUndo();
+        showToast('이전 수로 되돌렸어요.');
+        renderAll();
+      }
+
+      function handleHint() {
+        if (!state || state.winner || isAnimating) return;
+        const current = state.players[state.turnIndex];
+        if (current.controller !== 'human') return;
+        const mv = Engine.chooseAIMove(state, 'hard');
+        if (!mv) return;
+        selectedKey = null;
+        validMoves = new Map();
+        hintMove = mv;
+        Sound.playSelect();
+        showToast(mv.hops >= 2 ? `💡 추천: ${mv.hops}단 연속 점프!` : '💡 추천 이동 경로를 표시했어요!');
+        renderAll();
+      }
+
+      function syncSetupButtons() {
+        document.querySelectorAll('.setup-opt').forEach((btn) => {
+          const active = btn.dataset.mode === appConfig.mode;
+          btn.classList.toggle('ring-2', active);
+          btn.classList.toggle('ring-amber-300', active);
+          btn.classList.toggle('bg-amber-700/40', active);
+        });
+        document.querySelectorAll('.piece-opt').forEach((btn) => {
+          const active = Number(btn.dataset.pieces) === appConfig.pieceCount;
+          btn.classList.toggle('ring-2', active);
+          btn.classList.toggle('ring-amber-300', active);
+        });
+        document.querySelectorAll('.diff-opt').forEach((btn) => {
+          const active = btn.dataset.diff === appConfig.aiDifficulty;
+          btn.classList.toggle('ring-2', active);
+          btn.classList.toggle('ring-amber-300', active);
+        });
+      }
+
+      // Wire events
+      els.btnNewGame.addEventListener('click', () => {
+        syncSetupButtons();
+        els.setupModal.classList.remove('hidden');
+        els.setupModal.classList.add('flex');
+      });
+      els.btnCloseSetup.addEventListener('click', () => {
+        els.setupModal.classList.add('hidden');
+        els.setupModal.classList.remove('flex');
+      });
+      document.querySelectorAll('.setup-opt').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          appConfig.mode = btn.dataset.mode;
+          syncSetupButtons();
+        });
+      });
+      document.querySelectorAll('.piece-opt').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          appConfig.pieceCount = Number(btn.dataset.pieces);
+          syncSetupButtons();
+        });
+      });
+      document.querySelectorAll('.diff-opt').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          appConfig.aiDifficulty = btn.dataset.diff;
+          syncSetupButtons();
+        });
+      });
+      els.btnStartConfigured.addEventListener('click', () => {
+        els.setupModal.classList.add('hidden');
+        els.setupModal.classList.remove('flex');
+        startNewGame();
+        showToast('새 게임을 시작했어요!');
+      });
+
+      els.btnUndo.addEventListener('click', handleUndo);
+      els.btnHint.addEventListener('click', handleHint);
+
+      els.btnRules.addEventListener('click', () => {
+        els.rulesModal.classList.remove('hidden');
+        els.rulesModal.classList.add('flex');
+      });
+      const closeRules = () => {
+        els.rulesModal.classList.add('hidden');
+        els.rulesModal.classList.remove('flex');
+      };
+      els.btnCloseRules.addEventListener('click', closeRules);
+      els.btnOkRules.addEventListener('click', closeRules);
+      els.btnSpeakRules.addEventListener('click', () => {
+        Sound.speakKorean(
+          '다이아몬드 게임은 별 모양 판에서 내 색깔 말을 모두 반대편 진영으로 옮기는 게임입니다. 한 칸씩 움직이거나, 다른 말을 뛰어넘어 연속 점프로 빠르게 이동할 수 있어요!',
+          { userTriggered: true, onToast: showToast }
+        );
+      });
+
+      els.btnSfx.addEventListener('click', () => {
+        Sound.settings.sfxEnabled = !Sound.settings.sfxEnabled;
+        renderUI();
+        if (Sound.settings.sfxEnabled) Sound.playSelect();
+        showToast(Sound.settings.sfxEnabled ? '🔔 효과음을 켰어요.' : '🔕 효과음을 껐어요.');
+      });
+
+      els.btnTts.addEventListener('click', () => {
+        Sound.settings.ttsEnabled = !Sound.settings.ttsEnabled;
+        renderUI();
+        showToast(Sound.settings.ttsEnabled ? '🔊 한국어 음성 안내를 켰어요.' : '🔇 음성 안내를 껐어요.');
+        if (Sound.settings.ttsEnabled) {
+          Sound.speakKorean('한국어 음성 안내를 켰어요.', { userTriggered: true, onToast: showToast });
+        }
+      });
+
+      els.btnWinReplay.addEventListener('click', startNewGame);
+      els.btnWinClose.addEventListener('click', () => {
+        els.winModal.classList.add('hidden');
+        els.winModal.classList.remove('flex');
+      });
+
+      // PWA Install Prompt
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        els.btnInstall.classList.remove('hidden');
+      });
+      els.btnInstall.addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          showToast('📲 다이아몬드 앱을 설치하고 있어요!');
+        }
+        deferredInstallPrompt = null;
+        els.btnInstall.classList.add('hidden');
+      });
+      window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        els.btnInstall.classList.add('hidden');
+        showToast('✅ 다이아몬드 게임 앱이 설치되었어요!');
+      });
+
+      // Register Service Worker
+      if (
+        'serviceWorker' in navigator &&
+        (location.protocol === 'https:' ||
+          location.hostname === 'localhost' ||
+          location.hostname === '127.0.0.1')
+      ) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+
+      // Initialize
+      buildStaticBoard();
+      startNewGame();
+    })();
+  </script>
+</body>
+</html>

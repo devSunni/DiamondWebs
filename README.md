@@ -1,5 +1,7 @@
 # 다이아몬드 게임 · DiamondWebs (PWA)
 
+👉 **바로 플레이하기 (PWA 설치 가능):** https://devsunni.github.io/DiamondWebs/
+
 별 모양(6각 성형) 보드에서 빨강·노랑·파랑 말들을 정반대편 진영으로 옮기는 추억의 **다이아몬드 보드게임** 오프라인 설치형 PWA입니다.
 
 ## 주요 기능

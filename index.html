@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>다이아몬드 게임 · DiamondWebs</title>
   <meta name="description" content="별 모양 보드에서 빨강·노랑·파랑 말을 반대편으로 옮기는 오프라인 설치형 보드게임 PWA" />
-  <meta name="theme-color" content="#2b1d14" />
+  <meta name="theme-color" content="#f8fafc" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="다이아몬드" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
@@ -18,15 +18,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg-deep: #1a120d;
-      --bg-panel: rgba(43, 29, 20, 0.86);
-      --border-gold: rgba(245, 196, 105, 0.25);
+      --bg-page: #f8fafc;
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --border-soft: rgba(148, 163, 184, 0.35);
     }
 
     html, body {
       font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
-      background: radial-gradient(circle at 50% 25%, #3a2619 0%, #1c130e 72%, #120c09 100%);
-      color: #fef3c7;
+      background: radial-gradient(circle at 50% 18%, #ffffff 0%, #f1f5f9 62%, #e2e8f0 100%);
+      color: #0f172a;
       margin: 0;
       padding: 0;
       min-height: 100dvh;
@@ -65,10 +65,10 @@
     }
 
     .glass-card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-gold);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
-      backdrop-filter: blur(8px);
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+      backdrop-filter: blur(10px);
     }
 
     .hole-hit {
@@ -76,7 +76,7 @@
     }
 
     @keyframes pulseRing {
-      0%, 100% { transform: scale(0.92); opacity: 0.75; }
+      0%, 100% { transform: scale(0.92); opacity: 0.78; }
       50% { transform: scale(1.12); opacity: 1; }
     }
 
@@ -92,32 +92,35 @@
     }
 
     .piece-group:hover {
-      filter: brightness(1.08);
+      filter: brightness(1.06);
     }
 
-    .btn-warm {
-      background: linear-gradient(180deg, #523826 0%, #3a2619 100%);
-      border: 1px solid rgba(245, 196, 105, 0.3);
-      transition: transform 0.1s ease, filter 0.15s ease;
+    .btn-light {
+      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
     }
-    .btn-warm:active {
+    .btn-light:active {
       transform: scale(0.96);
     }
-    .btn-warm:hover {
-      filter: brightness(1.14);
+    .btn-light:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+      border-color: #94a3b8;
     }
 
-    .btn-gold {
-      background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
-      color: #1c130e;
+    .btn-primary {
+      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+      color: #ffffff;
       font-weight: 800;
+      border: 1px solid #1d4ed8;
       transition: transform 0.1s ease, filter 0.15s ease;
     }
-    .btn-gold:active {
+    .btn-primary:active {
       transform: scale(0.96);
     }
-    .btn-gold:hover {
-      filter: brightness(1.08);
+    .btn-primary:hover {
+      filter: brightness(1.07);
     }
   </style>
 </head>
@@ -130,24 +133,24 @@
         <!-- Brand Header -->
         <header class="glass-card rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
-            <img src="./icon-192.png" alt="다이아몬드 게임 아이콘" class="w-9 h-9 rounded-xl shadow-md shrink-0" />
+            <img src="./icon-192.png" alt="다이아몬드 게임 아이콘" class="w-9 h-9 rounded-xl shadow-sm border border-slate-200 shrink-0" />
             <div class="min-w-0">
-              <h1 class="text-base md:text-lg font-black tracking-tight text-amber-200 leading-tight truncate">
+              <h1 class="text-base md:text-lg font-black tracking-tight text-slate-900 leading-tight truncate">
                 다이아몬드 게임
               </h1>
-              <p id="modeSubtitle" class="text-[11px] text-amber-200/70 truncate">
+              <p id="modeSubtitle" class="text-[11px] font-medium text-slate-500 truncate">
                 3인전 · 10말 표준 · 중급 AI
               </p>
             </div>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
-            <button id="btnInstall" type="button" class="hidden px-2.5 py-1.5 rounded-xl btn-gold text-xs shadow" title="앱 설치">
+            <button id="btnInstall" type="button" class="hidden px-2.5 py-1.5 rounded-xl btn-primary text-xs shadow-sm" title="앱 설치">
               📲 설치
             </button>
-            <button id="btnSfx" type="button" class="btn-warm w-9 h-9 rounded-xl flex items-center justify-center text-base" title="효과음 켜기/끄기" aria-label="효과음 토글">
+            <button id="btnSfx" type="button" class="btn-light w-9 h-9 rounded-xl flex items-center justify-center text-base shadow-sm" title="효과음 켜기/끄기" aria-label="효과음 토글">
               🔔
             </button>
-            <button id="btnTts" type="button" class="btn-warm w-9 h-9 rounded-xl flex items-center justify-center text-base" title="한국어 음성 안내 켜기/끄기" aria-label="음성 안내 토글">
+            <button id="btnTts" type="button" class="btn-light w-9 h-9 rounded-xl flex items-center justify-center text-base shadow-sm" title="한국어 음성 안내 켜기/끄기" aria-label="음성 안내 토글">
               🔊
             </button>
           </div>
@@ -156,14 +159,14 @@
         <!-- Turn Banner -->
         <div id="turnBanner" class="glass-card rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
-            <span id="turnDot" class="w-4 h-4 rounded-full shadow-inner shrink-0 ring-2 ring-amber-200/70 bg-rose-500"></span>
+            <span id="turnDot" class="w-4 h-4 rounded-full shadow-sm shrink-0 ring-2 ring-slate-200 bg-rose-500"></span>
             <div class="min-w-0">
-              <div id="turnTitle" class="text-sm md:text-base font-extrabold text-amber-50 truncate">빨강 차례</div>
-              <div id="turnHint" class="text-[11px] text-amber-200/75 truncate">옮길 말을 선택하세요</div>
+              <div id="turnTitle" class="text-sm md:text-base font-extrabold text-slate-900 truncate">빨강 차례</div>
+              <div id="turnHint" class="text-[11px] text-slate-500 truncate">옮길 말을 선택하세요</div>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <span id="turnBadge" class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30">
+            <span id="turnBadge" class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
               1턴
             </span>
           </div>
@@ -174,16 +177,16 @@
 
         <!-- Action Buttons -->
         <div class="glass-card rounded-2xl p-2.5 grid grid-cols-4 md:grid-cols-2 gap-2">
-          <button id="btnNewGame" type="button" class="btn-gold rounded-xl py-2.5 px-2 text-xs md:text-sm flex items-center justify-center gap-1 shadow">
+          <button id="btnNewGame" type="button" class="btn-primary rounded-xl py-2.5 px-2 text-xs md:text-sm flex items-center justify-center gap-1 shadow-sm">
             <span>🎮</span><span>새 게임</span>
           </button>
-          <button id="btnUndo" type="button" class="btn-warm rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold text-amber-100 flex items-center justify-center gap-1">
+          <button id="btnUndo" type="button" class="btn-light rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold flex items-center justify-center gap-1 shadow-sm">
             <span>↩️</span><span>무르기</span>
           </button>
-          <button id="btnHint" type="button" class="btn-warm rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold text-amber-100 flex items-center justify-center gap-1">
+          <button id="btnHint" type="button" class="btn-light rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold flex items-center justify-center gap-1 shadow-sm">
             <span>💡</span><span>힌트</span>
           </button>
-          <button id="btnRules" type="button" class="btn-warm rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold text-amber-100 flex items-center justify-center gap-1">
+          <button id="btnRules" type="button" class="btn-light rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold flex items-center justify-center gap-1 shadow-sm">
             <span>📖</span><span>규칙</span>
           </button>
         </div>
@@ -192,43 +195,43 @@
       <!-- Right Column: 6-Pointed Star Board -->
       <section class="md:col-span-7 lg:col-span-8 flex items-center justify-center order-1 md:order-2">
         <div class="board-shell relative flex items-center justify-center">
-          <svg id="boardSvg" viewBox="-10 -10 20 20" class="w-full h-full drop-shadow-[0_18px_36px_rgba(0,0,0,0.65)]" role="img" aria-label="다이아몬드 별 모양 보드판">
+          <svg id="boardSvg" viewBox="-10 -10 20 20" class="w-full h-full drop-shadow-[0_14px_30px_rgba(15,23,42,0.14)]" role="img" aria-label="다이아몬드 별 모양 보드판">
             <defs>
-              <radialGradient id="woodFrame" cx="45%" cy="35%" r="68%">
-                <stop offset="0%" stop-color="#6b4428" />
-                <stop offset="65%" stop-color="#452a17" />
-                <stop offset="100%" stop-color="#2c1a0e" />
+              <radialGradient id="pearlFrame" cx="40%" cy="30%" r="72%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="72%" stop-color="#f1f5f9" />
+                <stop offset="100%" stop-color="#dbe4ef" />
               </radialGradient>
-              <linearGradient id="woodBoard" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#f5deb3" />
-                <stop offset="50%" stop-color="#e8c68e" />
-                <stop offset="100%" stop-color="#d5ab6c" />
+              <linearGradient id="starSurface" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="55%" stop-color="#f8fafc" />
+                <stop offset="100%" stop-color="#eef2f6" />
               </linearGradient>
-              <radialGradient id="holeGrad" cx="40%" cy="35%" r="65%">
-                <stop offset="0%" stop-color="#8b6239" />
-                <stop offset="70%" stop-color="#634222" />
-                <stop offset="100%" stop-color="#4a2f16" />
+              <radialGradient id="holeGrad" cx="42%" cy="38%" r="65%">
+                <stop offset="0%" stop-color="#e2e8f0" />
+                <stop offset="68%" stop-color="#cbd5e1" />
+                <stop offset="100%" stop-color="#94a3b8" />
               </radialGradient>
               <radialGradient id="marble-red" cx="35%" cy="30%" r="65%">
                 <stop offset="0%" stop-color="#ffe4e6" />
                 <stop offset="22%" stop-color="#fb7185" />
                 <stop offset="68%" stop-color="#e11d48" />
-                <stop offset="100%" stop-color="#881337" />
+                <stop offset="100%" stop-color="#9f1239" />
               </radialGradient>
               <radialGradient id="marble-yellow" cx="35%" cy="30%" r="65%">
                 <stop offset="0%" stop-color="#fefce8" />
                 <stop offset="24%" stop-color="#fde047" />
                 <stop offset="68%" stop-color="#eab308" />
-                <stop offset="100%" stop-color="#854d0e" />
+                <stop offset="100%" stop-color="#a16207" />
               </radialGradient>
               <radialGradient id="marble-blue" cx="35%" cy="30%" r="65%">
                 <stop offset="0%" stop-color="#eff6ff" />
                 <stop offset="22%" stop-color="#60a5fa" />
                 <stop offset="68%" stop-color="#2563eb" />
-                <stop offset="100%" stop-color="#1e3a8a" />
+                <stop offset="100%" stop-color="#1e40af" />
               </radialGradient>
               <filter id="pieceShadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="0.12" stdDeviation="0.1" flood-color="#1a0e07" flood-opacity="0.65" />
+                <feDropShadow dx="0" dy="0.11" stdDeviation="0.09" flood-color="#0f172a" flood-opacity="0.32" />
               </filter>
             </defs>
             <g id="layerBase"></g>
@@ -245,96 +248,96 @@
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-amber-950/95 border border-amber-400/50 text-amber-100 text-xs md:text-sm font-bold shadow-2xl opacity-0 pointer-events-none transition-opacity duration-200 whitespace-nowrap"></div>
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-slate-900/92 border border-slate-700 text-white text-xs md:text-sm font-bold shadow-xl opacity-0 pointer-events-none transition-opacity duration-200 whitespace-nowrap"></div>
 
   <!-- New Game Setup Modal -->
-  <div id="setupModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-    <div class="glass-card rounded-3xl w-full max-w-md p-5 text-amber-50 space-y-4">
+  <div id="setupModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/45 backdrop-blur-sm p-4">
+    <div class="glass-card rounded-3xl w-full max-w-md p-5 text-slate-900 space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-black text-amber-200">🎮 새 게임 설정</h2>
-        <button id="btnCloseSetup" type="button" class="btn-warm w-8 h-8 rounded-full text-sm font-bold">✕</button>
+        <h2 class="text-lg font-black text-slate-900">🎮 새 게임 설정</h2>
+        <button id="btnCloseSetup" type="button" class="btn-light w-8 h-8 rounded-full text-sm font-bold">✕</button>
       </div>
 
       <div class="space-y-3 text-sm">
         <div>
-          <label class="block text-xs font-bold text-amber-200/80 mb-1.5">플레이어 모드</label>
+          <label class="block text-xs font-bold text-slate-500 mb-1.5">플레이어 모드</label>
           <div class="grid grid-cols-2 gap-2" id="optMode">
-            <button type="button" data-mode="3p-1h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
-              🔴🟡🔵 3인전<br><span class="text-[11px] font-normal text-amber-200/70">나 vs AI 2명</span>
+            <button type="button" data-mode="3p-1h" class="setup-opt btn-light rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🟡🔵 3인전<br><span class="text-[11px] font-normal text-slate-500">나 vs AI 2명</span>
             </button>
-            <button type="button" data-mode="3p-3h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
-              🔴🟡🔵 3인 대결<br><span class="text-[11px] font-normal text-amber-200/70">친구와 번갈아 플레이</span>
+            <button type="button" data-mode="3p-3h" class="setup-opt btn-light rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🟡🔵 3인 대결<br><span class="text-[11px] font-normal text-slate-500">친구와 번갈아 플레이</span>
             </button>
-            <button type="button" data-mode="2p-1h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
-              🔴🔵 2인전<br><span class="text-[11px] font-normal text-amber-200/70">나 vs AI 1명</span>
+            <button type="button" data-mode="2p-1h" class="setup-opt btn-light rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🔵 2인전<br><span class="text-[11px] font-normal text-slate-500">나 vs AI 1명</span>
             </button>
-            <button type="button" data-mode="2p-2h" class="setup-opt btn-warm rounded-xl py-2 px-2.5 text-xs font-bold text-left">
-              🔴🔵 2인 대결<br><span class="text-[11px] font-normal text-amber-200/70">마주 보고 1:1 대결</span>
+            <button type="button" data-mode="2p-2h" class="setup-opt btn-light rounded-xl py-2 px-2.5 text-xs font-bold text-left">
+              🔴🔵 2인 대결<br><span class="text-[11px] font-normal text-slate-500">마주 보고 1:1 대결</span>
             </button>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-amber-200/80 mb-1.5">말 개수</label>
+            <label class="block text-xs font-bold text-slate-500 mb-1.5">말 개수</label>
             <div class="grid grid-cols-2 gap-1.5" id="optPieces">
-              <button type="button" data-pieces="10" class="piece-opt btn-warm rounded-xl py-2 text-xs font-bold">10말 표준</button>
-              <button type="button" data-pieces="15" class="piece-opt btn-warm rounded-xl py-2 text-xs font-bold">15말 전통</button>
+              <button type="button" data-pieces="10" class="piece-opt btn-light rounded-xl py-2 text-xs font-bold">10말 표준</button>
+              <button type="button" data-pieces="15" class="piece-opt btn-light rounded-xl py-2 text-xs font-bold">15말 전통</button>
             </div>
           </div>
           <div>
-            <label class="block text-xs font-bold text-amber-200/80 mb-1.5">AI 난이도</label>
+            <label class="block text-xs font-bold text-slate-500 mb-1.5">AI 난이도</label>
             <div class="grid grid-cols-3 gap-1" id="optDiff">
-              <button type="button" data-diff="easy" class="diff-opt btn-warm rounded-xl py-2 text-xs font-bold">초급</button>
-              <button type="button" data-diff="medium" class="diff-opt btn-warm rounded-xl py-2 text-xs font-bold">중급</button>
-              <button type="button" data-diff="hard" class="diff-opt btn-warm rounded-xl py-2 text-xs font-bold">고급</button>
+              <button type="button" data-diff="easy" class="diff-opt btn-light rounded-xl py-2 text-xs font-bold">초급</button>
+              <button type="button" data-diff="medium" class="diff-opt btn-light rounded-xl py-2 text-xs font-bold">중급</button>
+              <button type="button" data-diff="hard" class="diff-opt btn-light rounded-xl py-2 text-xs font-bold">고급</button>
             </div>
           </div>
         </div>
       </div>
 
-      <button id="btnStartConfigured" type="button" class="w-full btn-gold rounded-2xl py-3 text-sm font-black shadow-lg">
+      <button id="btnStartConfigured" type="button" class="w-full btn-primary rounded-2xl py-3 text-sm font-black shadow-md">
         게임 시작하기 ✨
       </button>
     </div>
   </div>
 
   <!-- Rules Modal -->
-  <div id="rulesModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-    <div class="glass-card rounded-3xl w-full max-w-md p-5 text-amber-50 space-y-3.5 max-h-[90dvh] overflow-y-auto">
+  <div id="rulesModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/45 backdrop-blur-sm p-4">
+    <div class="glass-card rounded-3xl w-full max-w-md p-5 text-slate-900 space-y-3.5 max-h-[90dvh] overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-black text-amber-200">📖 다이아몬드 게임 규칙</h2>
+        <h2 class="text-lg font-black text-slate-900">📖 다이아몬드 게임 규칙</h2>
         <div class="flex items-center gap-1.5">
-          <button id="btnSpeakRules" type="button" class="btn-warm px-2.5 py-1.5 rounded-xl text-xs font-bold text-amber-200">
+          <button id="btnSpeakRules" type="button" class="btn-light px-2.5 py-1.5 rounded-xl text-xs font-bold text-blue-600">
             🔊 규칙 듣기
           </button>
-          <button id="btnCloseRules" type="button" class="btn-warm w-8 h-8 rounded-full text-sm font-bold">✕</button>
+          <button id="btnCloseRules" type="button" class="btn-light w-8 h-8 rounded-full text-sm font-bold">✕</button>
         </div>
       </div>
-      <ul class="space-y-2 text-xs md:text-sm text-amber-100/90 leading-relaxed">
-        <li><strong class="text-amber-300">🎯 목표:</strong> 별 모양 판에서 내 색깔 말(왕말 👑 포함)을 모두 <strong>정반대편 진영</strong>으로 가장 먼저 옮기면 승리합니다!</li>
-        <li><strong class="text-amber-300">👣 한 칸 이동:</strong> 차례마다 말 하나를 인접한 빈 칸으로 한 칸 옮길 수 있어요.</li>
-        <li><strong class="text-amber-300">🦘 연속 점프:</strong> 바로 옆에 다른 말(내 말·상대 말 모두 가능)이 있고 그 너머가 비어 있으면 뛰어넘을 수 있어요. 착지한 곳에서 또 뛰어넘을 수 있다면 <strong>한 턴에 여러 번 연속 점프</strong>가 가능합니다!</li>
-        <li><strong class="text-amber-300">✨ 잡기 없음:</strong> 뛰어넘은 말은 사라지지 않고 그대로 징검다리로 남아요.</li>
-        <li><strong class="text-amber-300">💡 팁:</strong> 말을 선택하면 갈 수 있는 칸과 <strong>2단·3단 연속 점프</strong> 위치가 금색으로 반짝여요!</li>
+      <ul class="space-y-2 text-xs md:text-sm text-slate-700 leading-relaxed">
+        <li><strong class="text-slate-900">🎯 목표:</strong> 별 모양 판에서 내 색깔 말(왕말 👑 포함)을 모두 <strong>정반대편 진영</strong>으로 가장 먼저 옮기면 승리합니다!</li>
+        <li><strong class="text-slate-900">👣 한 칸 이동:</strong> 차례마다 말 하나를 인접한 빈 칸으로 한 칸 옮길 수 있어요.</li>
+        <li><strong class="text-slate-900">🦘 연속 점프:</strong> 바로 옆에 다른 말(내 말·상대 말 모두 가능)이 있고 그 너머가 비어 있으면 뛰어넘을 수 있어요. 착지한 곳에서 또 뛰어넘을 수 있다면 <strong>한 턴에 여러 번 연속 점프</strong>가 가능합니다!</li>
+        <li><strong class="text-slate-900">✨ 잡기 없음:</strong> 뛰어넘은 말은 사라지지 않고 그대로 징검다리로 남아요.</li>
+        <li><strong class="text-slate-900">💡 팁:</strong> 말을 선택하면 갈 수 있는 칸과 <strong>2단·3단 연속 점프</strong> 위치가 표시돼요!</li>
       </ul>
-      <button id="btnOkRules" type="button" class="w-full btn-gold rounded-2xl py-2.5 text-sm font-black">
+      <button id="btnOkRules" type="button" class="w-full btn-primary rounded-2xl py-2.5 text-sm font-black">
         확인했어요!
       </button>
     </div>
   </div>
 
   <!-- Victory Modal -->
-  <div id="winModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+  <div id="winModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
     <div class="glass-card rounded-3xl w-full max-w-sm p-6 text-center space-y-4">
       <div class="text-5xl">🏆</div>
       <div>
-        <h2 id="winTitle" class="text-2xl font-black text-amber-200">빨강 승리!</h2>
-        <p id="winDesc" class="text-sm text-amber-100/80 mt-1">모든 말을 반대편 진영에 안착시켰어요!</p>
+        <h2 id="winTitle" class="text-2xl font-black text-slate-900">빨강 승리!</h2>
+        <p id="winDesc" class="text-sm text-slate-600 mt-1">모든 말을 반대편 진영에 안착시켰어요!</p>
       </div>
       <div class="grid grid-cols-2 gap-2.5 pt-1">
-        <button id="btnWinReplay" type="button" class="btn-gold rounded-2xl py-2.5 text-sm font-black">다시 하기</button>
-        <button id="btnWinClose" type="button" class="btn-warm rounded-2xl py-2.5 text-sm font-bold text-amber-100">보드 보기</button>
+        <button id="btnWinReplay" type="button" class="btn-primary rounded-2xl py-2.5 text-sm font-black">다시 하기</button>
+        <button id="btnWinClose" type="button" class="btn-light rounded-2xl py-2.5 text-sm font-bold">보드 보기</button>
       </div>
     </div>
   </div>
@@ -434,21 +437,21 @@
         els.layerLines.innerHTML = '';
         els.layerHoles.innerHTML = '';
 
-        // Outer circular/hex wooden plaque
+        // Clean porcelain-white circular plaque
         els.layerBase.appendChild(svgEl('circle', {
           cx: 0, cy: 0, r: 9.45,
-          fill: 'url(#woodFrame)',
-          stroke: '#8a5a32',
-          'stroke-width': 0.22
+          fill: 'url(#pearlFrame)',
+          stroke: '#cbd5e1',
+          'stroke-width': 0.2
         }));
         els.layerBase.appendChild(svgEl('circle', {
           cx: 0, cy: 0, r: 9.0,
           fill: 'none',
-          stroke: 'rgba(251, 191, 36, 0.24)',
-          'stroke-width': 0.08
+          stroke: 'rgba(148, 163, 184, 0.35)',
+          'stroke-width': 0.07
         }));
 
-        // 6-pointed star polygon (two equilateral triangles)
+        // 6-pointed crisp white star polygon
         const R = 8.45;
         const triPoints = (angles) =>
           angles.map((deg) => {
@@ -461,20 +464,20 @@
 
         els.layerBase.appendChild(svgEl('polygon', {
           points: tri1,
-          fill: 'url(#woodBoard)',
-          stroke: '#784c24',
-          'stroke-width': 0.16,
+          fill: 'url(#starSurface)',
+          stroke: '#94a3b8',
+          'stroke-width': 0.14,
           'stroke-linejoin': 'round'
         }));
         els.layerBase.appendChild(svgEl('polygon', {
           points: tri2,
-          fill: 'url(#woodBoard)',
-          stroke: '#784c24',
-          'stroke-width': 0.16,
+          fill: 'url(#starSurface)',
+          stroke: '#94a3b8',
+          'stroke-width': 0.14,
           'stroke-linejoin': 'round'
         }));
 
-        // Etched lattice lines connecting adjacent holes
+        // Crisp etched lattice lines connecting adjacent holes
         const drawnEdges = new Set();
         for (const cell of Engine.GEOMETRY.cells) {
           for (const nb of cell.neighbors) {
@@ -487,20 +490,20 @@
             els.layerLines.appendChild(svgEl('line', {
               x1: cell.x, y1: cell.y,
               x2: nb.step.x, y2: nb.step.y,
-              stroke: 'rgba(110, 68, 30, 0.34)',
-              'stroke-width': 0.075
+              stroke: 'rgba(148, 163, 184, 0.42)',
+              'stroke-width': 0.065
             }));
           }
         }
 
-        // Recessed holes
+        // Recessed pearl-gray holes
         for (const cell of Engine.GEOMETRY.cells) {
           const g = svgEl('g', { class: 'hole-hit', 'data-key': cell.key });
           g.appendChild(svgEl('circle', {
-            cx: cell.x, cy: cell.y, r: 0.34,
+            cx: cell.x, cy: cell.y, r: 0.33,
             fill: 'url(#holeGrad)',
-            stroke: 'rgba(255, 244, 214, 0.45)',
-            'stroke-width': 0.05
+            stroke: '#ffffff',
+            'stroke-width': 0.06
           }));
           // Larger invisible touch target
           g.appendChild(svgEl('circle', {
@@ -518,7 +521,6 @@
         els.layerZones.innerHTML = '';
         if (!state) return;
         for (const p of state.players) {
-          // Subtle tinted rings on start & target zones
           for (const k of p.startZone) {
             const cell = Engine.GEOMETRY.cellMap.get(k);
             els.layerZones.appendChild(svgEl('circle', {
@@ -536,7 +538,7 @@
               fill: 'none',
               stroke: p.hex,
               'stroke-dasharray': '0.14 0.1',
-              'stroke-opacity': 0.55,
+              'stroke-opacity': 0.65,
               'stroke-width': 0.06
             }));
           }
@@ -554,19 +556,19 @@
         els.layerPath.appendChild(svgEl('polyline', {
           points: pts,
           fill: 'none',
-          stroke: isHint ? '#38bdf8' : '#fbbf24',
+          stroke: isHint ? '#0284c7' : '#f59e0b',
           'stroke-width': 0.16,
           'stroke-linecap': 'round',
           'stroke-linejoin': 'round',
           'stroke-dasharray': '0.25 0.2',
-          opacity: 0.9
+          opacity: 0.92
         }));
 
         for (let i = 1; i < pathKeys.length - 1; i++) {
           const c = Engine.GEOMETRY.cellMap.get(pathKeys[i]);
           els.layerPath.appendChild(svgEl('circle', {
             cx: c.x, cy: c.y, r: 0.16,
-            fill: isHint ? '#38bdf8' : '#fde047',
+            fill: isHint ? '#0284c7' : '#f59e0b',
             opacity: 0.95
           }));
         }
@@ -575,8 +577,6 @@
       function renderPieces(overridePos = null) {
         els.layerPieces.innerHTML = '';
         if (!state) return;
-
-        const currentPlayer = state.players[state.turnIndex];
 
         for (const cell of Engine.GEOMETRY.cells) {
           const piece = state.board[cell.key];
@@ -588,7 +588,6 @@
           const isSelected = cell.key === selectedKey;
           const isLastDest = state.lastMove && state.lastMove.to === cell.key;
           const isHintFrom = hintMove && hintMove.from === cell.key;
-          const isOwnTurn = !state.winner && piece.owner === currentPlayer.id && currentPlayer.controller === 'human';
 
           const g = svgEl('g', {
             class: 'piece-group',
@@ -600,7 +599,7 @@
             g.appendChild(svgEl('circle', {
               cx: drawX, cy: drawY, r: 0.5,
               fill: 'none',
-              stroke: '#fef08a',
+              stroke: '#f59e0b',
               'stroke-width': 0.1,
               class: 'pulse-ring'
             }));
@@ -608,7 +607,7 @@
             g.appendChild(svgEl('circle', {
               cx: drawX, cy: drawY, r: 0.5,
               fill: 'none',
-              stroke: '#38bdf8',
+              stroke: '#0284c7',
               'stroke-width': 0.1,
               class: 'pulse-ring'
             }));
@@ -616,8 +615,8 @@
             g.appendChild(svgEl('circle', {
               cx: drawX, cy: drawY, r: 0.46,
               fill: 'none',
-              stroke: '#ffffff',
-              'stroke-opacity': 0.72,
+              stroke: '#0f172a',
+              'stroke-opacity': 0.45,
               'stroke-width': 0.065
             }));
           }
@@ -626,7 +625,7 @@
             cx: drawX, cy: drawY,
             r: isSelected ? 0.43 : (piece.isKing ? 0.41 : 0.37),
             fill: `url(#marble-${piece.owner})`,
-            stroke: piece.isKing ? '#fef08a' : 'rgba(255,255,255,0.45)',
+            stroke: piece.isKing ? '#facc15' : 'rgba(255,255,255,0.65)',
             'stroke-width': piece.isKing ? 0.075 : 0.04
           }));
 
@@ -634,7 +633,7 @@
           g.appendChild(svgEl('ellipse', {
             cx: drawX - 0.12, cy: drawY - 0.13,
             rx: 0.11, ry: 0.07,
-            fill: 'rgba(255,255,255,0.68)',
+            fill: 'rgba(255,255,255,0.72)',
             transform: `rotate(-25 ${drawX - 0.12} ${drawY - 0.13})`
           }));
 
@@ -651,17 +650,10 @@
             g.appendChild(crown);
           }
 
-          if (isOwnTurn) {
-            g.addEventListener('click', (e) => {
-              e.stopPropagation();
-              onCellClick(cell.key);
-            });
-          } else {
-            g.addEventListener('click', (e) => {
-              e.stopPropagation();
-              onCellClick(cell.key);
-            });
-          }
+          g.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onCellClick(cell.key);
+          });
 
           els.layerPieces.appendChild(g);
         }
@@ -676,8 +668,8 @@
           const g = svgEl('g', { class: 'hole-hit' });
           g.appendChild(svgEl('circle', {
             cx: dest.x, cy: dest.y, r: 0.36,
-            fill: 'rgba(56, 189, 248, 0.38)',
-            stroke: '#38bdf8',
+            fill: 'rgba(2, 132, 199, 0.28)',
+            stroke: '#0284c7',
             'stroke-width': 0.09,
             class: 'pulse-ring'
           }));
@@ -695,8 +687,8 @@
           g.appendChild(svgEl('circle', {
             cx: dest.x, cy: dest.y,
             r: isJump ? 0.35 : 0.25,
-            fill: isJump ? 'rgba(251, 191, 36, 0.42)' : 'rgba(52, 211, 153, 0.42)',
-            stroke: isJump ? '#fde047' : '#6ee7b7',
+            fill: isJump ? 'rgba(245, 158, 11, 0.32)' : 'rgba(16, 185, 129, 0.32)',
+            stroke: isJump ? '#d97706' : '#059669',
             'stroke-width': isJump ? 0.085 : 0.065,
             class: 'pulse-ring'
           }));
@@ -708,9 +700,9 @@
               'text-anchor': 'middle',
               'font-size': 0.32,
               'font-weight': 900,
-              fill: '#1c130e',
-              stroke: '#fef08a',
-              'stroke-width': 0.04,
+              fill: '#ffffff',
+              stroke: '#b45309',
+              'stroke-width': 0.05,
               'paint-order': 'stroke',
               'pointer-events': 'none'
             });
@@ -753,7 +745,7 @@
         } else {
           els.turnTitle.textContent = `${current.label} 차례`;
           els.turnHint.textContent = selectedKey
-            ? `이동 가능한 칸 ${validMoves.size}곳 (금색은 점프!)`
+            ? `이동 가능한 칸 ${validMoves.size}곳 (주황색은 점프!)`
             : '내 색깔 말을 눌러 이동하세요';
         }
         els.turnBadge.textContent = `${state.turnNumber}턴`;
@@ -767,18 +759,18 @@
 
           const card = document.createElement('div');
           card.className = `glass-card rounded-2xl px-2.5 py-2 transition-all ${
-            isActive ? 'ring-2 ring-amber-300 bg-amber-900/45' : 'opacity-80'
+            isActive ? 'ring-2 ring-blue-500 bg-white' : 'opacity-80'
           }`;
           card.innerHTML = `
             <div class="flex items-center justify-between gap-1 mb-1">
               <div class="flex items-center gap-1.5 min-w-0">
-                <span class="w-3 h-3 rounded-full shrink-0" style="background:${p.hex}; box-shadow: 0 0 8px ${p.hex}"></span>
-                <span class="text-xs md:text-sm font-extrabold text-amber-50 truncate">${p.label}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-black/30 text-amber-200/80 shrink-0">${p.controller === 'ai' ? 'AI' : '나'}</span>
+                <span class="w-3 h-3 rounded-full shrink-0" style="background:${p.hex}; box-shadow: 0 0 6px ${p.hex}66"></span>
+                <span class="text-xs md:text-sm font-extrabold text-slate-900 truncate">${p.label}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold shrink-0">${p.controller === 'ai' ? 'AI' : '나'}</span>
               </div>
-              <span class="text-xs font-black text-amber-200 shrink-0">${arrived}/${state.pieceCount}</span>
+              <span class="text-xs font-black text-slate-700 shrink-0">${arrived}/${state.pieceCount}</span>
             </div>
-            <div class="w-full h-1.5 rounded-full bg-black/40 overflow-hidden">
+            <div class="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
               <div class="h-full rounded-full transition-all duration-300" style="width:${pct}%; background:${p.hex}"></div>
             </div>
           `;
@@ -824,7 +816,6 @@
         const current = state.players[state.turnIndex];
         if (current.controller !== 'human') return;
 
-        // If clicking a valid destination for the currently selected piece
         if (selectedKey && validMoves.has(key)) {
           const mv = validMoves.get(key);
           executeMoveWithAnimation(mv);
@@ -852,7 +843,6 @@
           return;
         }
 
-        // Clicking empty or opponent cell clears selection
         if (selectedKey) {
           selectedKey = null;
           validMoves = new Map();
@@ -1016,18 +1006,18 @@
         document.querySelectorAll('.setup-opt').forEach((btn) => {
           const active = btn.dataset.mode === appConfig.mode;
           btn.classList.toggle('ring-2', active);
-          btn.classList.toggle('ring-amber-300', active);
-          btn.classList.toggle('bg-amber-700/40', active);
+          btn.classList.toggle('ring-blue-500', active);
+          btn.classList.toggle('bg-blue-50', active);
         });
         document.querySelectorAll('.piece-opt').forEach((btn) => {
           const active = Number(btn.dataset.pieces) === appConfig.pieceCount;
           btn.classList.toggle('ring-2', active);
-          btn.classList.toggle('ring-amber-300', active);
+          btn.classList.toggle('ring-blue-500', active);
         });
         document.querySelectorAll('.diff-opt').forEach((btn) => {
           const active = btn.dataset.diff === appConfig.aiDifficulty;
           btn.classList.toggle('ring-2', active);
-          btn.classList.toggle('ring-amber-300', active);
+          btn.classList.toggle('ring-blue-500', active);
         });
       }
 

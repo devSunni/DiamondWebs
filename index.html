@@ -50,18 +50,33 @@
     }
 
     .board-shell {
-      width: min(100%, 540px);
+      width: min(100%, 580px, calc(100dvh - 24px));
       aspect-ratio: 1 / 1;
       margin: 0 auto;
+      transition: width 0.2s ease;
     }
 
     @media (min-width: 768px) and (orientation: landscape) {
       .board-shell {
-        width: min(100%, 660px, calc(100dvh - 36px));
+        width: min(100%, 760px, calc(100dvh - 20px));
       }
       body {
         overflow-x: hidden;
       }
+    }
+
+    /* Collapsible menu mode: maximize star board to full viewport */
+    html.menu-hidden #sidePanel {
+      display: none !important;
+    }
+    html.menu-hidden #boardCol {
+      grid-column: 1 / -1 !important;
+    }
+    html.menu-hidden .board-shell {
+      width: min(calc(100vw - 16px), calc(100dvh - 20px), 880px);
+    }
+    html.menu-hidden #floatingMiniBar {
+      display: flex;
     }
 
     .glass-card {
@@ -125,17 +140,33 @@
   </style>
 </head>
 <body class="min-h-[100dvh] flex flex-col justify-center">
-  <div class="w-full max-w-5xl lg:max-w-6xl mx-auto px-2.5 py-2 md:py-3">
-    <main class="grid grid-cols-1 md:grid-cols-12 gap-2.5 md:gap-4 items-center">
+  <!-- Compact Floating Mini Bar (shown when menu is collapsed) -->
+  <div id="floatingMiniBar" class="hidden fixed top-2.5 left-2.5 right-2.5 z-30 items-center justify-between pointer-events-none">
+    <div class="glass-card rounded-full px-3 py-1.5 flex items-center gap-2 pointer-events-auto shadow-md">
+      <span id="miniTurnDot" class="w-3.5 h-3.5 rounded-full shrink-0 bg-rose-500 ring-2 ring-slate-200"></span>
+      <span id="miniTurnText" class="text-xs md:text-sm font-extrabold text-slate-900">빨강 차례</span>
+      <span id="miniTurnBadge" class="text-[11px] font-bold text-slate-500">1턴</span>
+    </div>
+    <div class="flex items-center gap-1.5 pointer-events-auto">
+      <button id="btnMiniUndo" type="button" class="btn-light h-9 px-2.5 rounded-full text-xs font-bold shadow-md" title="무르기">↩️</button>
+      <button id="btnMiniHint" type="button" class="btn-light h-9 px-2.5 rounded-full text-xs font-bold shadow-md" title="힌트">💡</button>
+      <button id="btnMenuShow" type="button" class="btn-primary h-9 px-3.5 rounded-full text-xs font-extrabold shadow-md" aria-expanded="false">
+        메뉴 보기
+      </button>
+    </div>
+  </div>
+
+  <div class="w-full max-w-6xl mx-auto px-2 py-1.5 md:py-2">
+    <main class="grid grid-cols-1 md:grid-cols-12 gap-2.5 md:gap-3 items-center">
 
       <!-- Left Column: Header, Players & Controls -->
-      <section class="md:col-span-5 lg:col-span-4 flex flex-col gap-2.5 order-2 md:order-1">
+      <section id="sidePanel" class="md:col-span-4 lg:col-span-3 flex flex-col gap-2 order-2 md:order-1">
         <!-- Brand Header -->
-        <header class="glass-card rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <img src="./icon-192.png" alt="다이아몬드 게임 아이콘" class="w-9 h-9 rounded-xl shadow-sm border border-slate-200 shrink-0" />
+        <header class="glass-card rounded-2xl px-3 py-2 flex items-center justify-between gap-1.5">
+          <div class="flex items-center gap-2 min-w-0">
+            <img src="./icon-192.png" alt="다이아몬드 게임 아이콘" class="w-8 h-8 rounded-xl shadow-sm border border-slate-200 shrink-0" />
             <div class="min-w-0">
-              <h1 class="text-base md:text-lg font-black tracking-tight text-slate-900 leading-tight truncate">
+              <h1 class="text-sm md:text-base font-black tracking-tight text-slate-900 leading-tight truncate">
                 다이아몬드 게임
               </h1>
               <p id="modeSubtitle" class="text-[11px] font-medium text-slate-500 truncate">
@@ -143,59 +174,64 @@
               </p>
             </div>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button id="btnInstall" type="button" class="hidden px-2.5 py-1.5 rounded-xl btn-primary text-xs shadow-sm" title="앱 설치">
-              📲 설치
+          <div class="flex items-center gap-1 shrink-0">
+            <button id="btnInstall" type="button" class="hidden px-2 py-1.5 rounded-xl btn-primary text-[11px] shadow-sm" title="앱 설치">
+              📲
             </button>
-            <button id="btnSfx" type="button" class="btn-light w-9 h-9 rounded-xl flex items-center justify-center text-base shadow-sm" title="효과음 켜기/끄기" aria-label="효과음 토글">
+            <button id="btnSfx" type="button" class="btn-light w-8 h-8 rounded-xl flex items-center justify-center text-sm shadow-sm" title="효과음 켜기/끄기" aria-label="효과음 토글">
               🔔
             </button>
-            <button id="btnTts" type="button" class="btn-light w-9 h-9 rounded-xl flex items-center justify-center text-base shadow-sm" title="한국어 음성 안내 켜기/끄기" aria-label="음성 안내 토글">
+            <button id="btnTts" type="button" class="btn-light w-8 h-8 rounded-xl flex items-center justify-center text-sm shadow-sm" title="한국어 음성 안내 켜기/끄기" aria-label="음성 안내 토글">
               🔊
             </button>
           </div>
         </header>
 
+        <!-- Menu Collapse Toggle -->
+        <button id="btnMenuHide" type="button" class="btn-light rounded-xl py-1.5 px-3 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm" aria-expanded="true">
+          <span>⛶</span><span>메뉴 숨기기 (판 크게 보기)</span>
+        </button>
+
         <!-- Turn Banner -->
-        <div id="turnBanner" class="glass-card rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2.5 min-w-0">
+        <div id="turnBanner" class="glass-card rounded-2xl px-3 py-2 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
             <span id="turnDot" class="w-4 h-4 rounded-full shadow-sm shrink-0 ring-2 ring-slate-200 bg-rose-500"></span>
             <div class="min-w-0">
-              <div id="turnTitle" class="text-sm md:text-base font-extrabold text-slate-900 truncate">빨강 차례</div>
+              <div id="turnTitle" class="text-sm font-extrabold text-slate-900 truncate">빨강 차례</div>
               <div id="turnHint" class="text-[11px] text-slate-500 truncate">옮길 말을 선택하세요</div>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <span id="turnBadge" class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            <span id="turnBadge" class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
               1턴
             </span>
           </div>
         </div>
 
         <!-- Players Scoreboard -->
-        <div id="playerCards" class="grid grid-cols-3 md:grid-cols-1 gap-2"></div>
+        <div id="playerCards" class="grid grid-cols-3 md:grid-cols-1 gap-1.5"></div>
 
         <!-- Action Buttons -->
-        <div class="glass-card rounded-2xl p-2.5 grid grid-cols-4 md:grid-cols-2 gap-2">
-          <button id="btnNewGame" type="button" class="btn-primary rounded-xl py-2.5 px-2 text-xs md:text-sm flex items-center justify-center gap-1 shadow-sm">
+        <div class="glass-card rounded-2xl p-2 grid grid-cols-4 md:grid-cols-2 gap-1.5">
+          <button id="btnNewGame" type="button" class="btn-primary rounded-xl py-2 px-2 text-xs flex items-center justify-center gap-1 shadow-sm">
             <span>🎮</span><span>새 게임</span>
           </button>
-          <button id="btnUndo" type="button" class="btn-light rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold flex items-center justify-center gap-1 shadow-sm">
+          <button id="btnUndo" type="button" class="btn-light rounded-xl py-2 px-2 text-xs font-bold flex items-center justify-center gap-1 shadow-sm">
             <span>↩️</span><span>무르기</span>
           </button>
-          <button id="btnHint" type="button" class="btn-light rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold flex items-center justify-center gap-1 shadow-sm">
+          <button id="btnHint" type="button" class="btn-light rounded-xl py-2 px-2 text-xs font-bold flex items-center justify-center gap-1 shadow-sm">
             <span>💡</span><span>힌트</span>
           </button>
-          <button id="btnRules" type="button" class="btn-light rounded-xl py-2.5 px-2 text-xs md:text-sm font-bold flex items-center justify-center gap-1 shadow-sm">
+          <button id="btnRules" type="button" class="btn-light rounded-xl py-2 px-2 text-xs font-bold flex items-center justify-center gap-1 shadow-sm">
             <span>📖</span><span>규칙</span>
           </button>
         </div>
       </section>
 
       <!-- Right Column: 6-Pointed Star Board -->
-      <section class="md:col-span-7 lg:col-span-8 flex items-center justify-center order-1 md:order-2">
+      <section id="boardCol" class="md:col-span-8 lg:col-span-9 flex items-center justify-center order-1 md:order-2">
         <div class="board-shell relative flex items-center justify-center">
-          <svg id="boardSvg" viewBox="-10 -10 20 20" class="w-full h-full drop-shadow-[0_14px_30px_rgba(15,23,42,0.14)]" role="img" aria-label="다이아몬드 별 모양 보드판">
+          <svg id="boardSvg" viewBox="-9.65 -9.65 19.3 19.3" class="w-full h-full drop-shadow-[0_14px_30px_rgba(15,23,42,0.14)]" role="img" aria-label="다이아몬드 별 모양 보드판">
             <defs>
               <radialGradient id="pearlFrame" cx="40%" cy="30%" r="72%">
                 <stop offset="0%" stop-color="#ffffff" />
@@ -360,11 +396,39 @@
         if (!e.target || !e.target.closest('input, textarea')) e.preventDefault();
       });
 
+      const PREFS_KEY = 'diamond-webs-prefs-v1';
       const appConfig = {
         mode: '3p-1h',
         pieceCount: 10,
         aiDifficulty: 'medium'
       };
+
+      function loadPrefs() {
+        try {
+          const raw = localStorage.getItem(PREFS_KEY);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          if (['3p-1h', '3p-3h', '2p-1h', '2p-2h'].includes(saved.mode)) appConfig.mode = saved.mode;
+          if (saved.pieceCount === 10 || saved.pieceCount === 15) appConfig.pieceCount = saved.pieceCount;
+          if (['easy', 'medium', 'hard'].includes(saved.aiDifficulty)) appConfig.aiDifficulty = saved.aiDifficulty;
+          if (typeof saved.sfxEnabled === 'boolean') Sound.settings.sfxEnabled = saved.sfxEnabled;
+          if (typeof saved.ttsEnabled === 'boolean') Sound.settings.ttsEnabled = saved.ttsEnabled;
+        } catch {}
+      }
+
+      function savePrefs() {
+        try {
+          localStorage.setItem(PREFS_KEY, JSON.stringify({
+            mode: appConfig.mode,
+            pieceCount: appConfig.pieceCount,
+            aiDifficulty: appConfig.aiDifficulty,
+            sfxEnabled: Sound.settings.sfxEnabled,
+            ttsEnabled: Sound.settings.ttsEnabled
+          }));
+        } catch {}
+      }
+
+      loadPrefs();
 
       let state = null;
       let selectedKey = null;
@@ -390,6 +454,13 @@
         turnTitle: document.getElementById('turnTitle'),
         turnHint: document.getElementById('turnHint'),
         turnBadge: document.getElementById('turnBadge'),
+        miniTurnDot: document.getElementById('miniTurnDot'),
+        miniTurnText: document.getElementById('miniTurnText'),
+        miniTurnBadge: document.getElementById('miniTurnBadge'),
+        btnMenuHide: document.getElementById('btnMenuHide'),
+        btnMenuShow: document.getElementById('btnMenuShow'),
+        btnMiniUndo: document.getElementById('btnMiniUndo'),
+        btnMiniHint: document.getElementById('btnMiniHint'),
         toast: document.getElementById('toast'),
         btnInstall: document.getElementById('btnInstall'),
         btnSfx: document.getElementById('btnSfx'),
@@ -749,6 +820,9 @@
             : '내 색깔 말을 눌러 이동하세요';
         }
         els.turnBadge.textContent = `${state.turnNumber}턴`;
+        els.miniTurnDot.style.backgroundColor = current.hex;
+        els.miniTurnText.textContent = els.turnTitle.textContent;
+        els.miniTurnBadge.textContent = `${state.turnNumber}턴`;
 
         // Render player status cards
         els.playerCards.innerHTML = '';
@@ -779,8 +853,12 @@
 
         els.btnUndo.disabled = state.history.length === 0 || isAnimating;
         els.btnUndo.classList.toggle('opacity-45', els.btnUndo.disabled);
+        els.btnMiniUndo.disabled = els.btnUndo.disabled;
+        els.btnMiniUndo.classList.toggle('opacity-45', els.btnUndo.disabled);
         els.btnHint.disabled = Boolean(state.winner) || current.controller !== 'human' || isAnimating;
         els.btnHint.classList.toggle('opacity-45', els.btnHint.disabled);
+        els.btnMiniHint.disabled = els.btnHint.disabled;
+        els.btnMiniHint.classList.toggle('opacity-45', els.btnHint.disabled);
 
         els.btnSfx.textContent = Sound.settings.sfxEnabled ? '🔔' : '🔕';
         els.btnTts.textContent = Sound.settings.ttsEnabled ? '🔊' : '🔇';
@@ -1050,11 +1128,28 @@
         });
       });
       els.btnStartConfigured.addEventListener('click', () => {
+        savePrefs();
         els.setupModal.classList.add('hidden');
         els.setupModal.classList.remove('flex');
         startNewGame();
         showToast('새 게임을 시작했어요!');
       });
+
+      function setMenuHidden(hidden) {
+        document.documentElement.classList.toggle('menu-hidden', hidden);
+        els.btnMenuHide.setAttribute('aria-expanded', String(!hidden));
+        els.btnMenuShow.setAttribute('aria-expanded', String(!hidden));
+        try { localStorage.setItem('diamond-menu-hidden', hidden ? '1' : '0'); } catch {}
+      }
+
+      els.btnMenuHide.addEventListener('click', () => setMenuHidden(true));
+      els.btnMenuShow.addEventListener('click', () => setMenuHidden(false));
+      els.btnMiniUndo.addEventListener('click', handleUndo);
+      els.btnMiniHint.addEventListener('click', handleHint);
+
+      try {
+        if (localStorage.getItem('diamond-menu-hidden') === '1') setMenuHidden(true);
+      } catch {}
 
       els.btnUndo.addEventListener('click', handleUndo);
       els.btnHint.addEventListener('click', handleHint);
@@ -1078,6 +1173,7 @@
 
       els.btnSfx.addEventListener('click', () => {
         Sound.settings.sfxEnabled = !Sound.settings.sfxEnabled;
+        savePrefs();
         renderUI();
         if (Sound.settings.sfxEnabled) Sound.playSelect();
         showToast(Sound.settings.sfxEnabled ? '🔔 효과음을 켰어요.' : '🔕 효과음을 껐어요.');
@@ -1085,6 +1181,7 @@
 
       els.btnTts.addEventListener('click', () => {
         Sound.settings.ttsEnabled = !Sound.settings.ttsEnabled;
+        savePrefs();
         renderUI();
         showToast(Sound.settings.ttsEnabled ? '🔊 한국어 음성 안내를 켰어요.' : '🔇 음성 안내를 껐어요.');
         if (Sound.settings.ttsEnabled) {

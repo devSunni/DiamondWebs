@@ -153,4 +153,10 @@ test('PWA manifest, icons, service worker, touch & TTS guards', () => {
   assert.ok(soundSource.includes('synth.cancel()'));
   assert.ok(soundSource.includes('setTimeout(doSpeak, 65)'));
   assert.ok(soundSource.includes('synth.paused'));
+
+  // Collapsible menu & persistent settings guards
+  assert.ok(html.includes('id="btnMenuHide"'));
+  assert.ok(html.includes('id="btnMenuShow"'));
+  assert.ok(html.includes('diamond-webs-prefs-v1'));
+  assert.ok(html.includes('diamond-menu-hidden'));
 });
